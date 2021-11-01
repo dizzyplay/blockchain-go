@@ -63,7 +63,7 @@ func blocks(rw http.ResponseWriter, req *http.Request) {
 		utils.HandleError(json.NewDecoder(req.Body).Decode(&b))
 		blockchain.BlockChain().AddBlock(b.Message)
 		rw.WriteHeader(http.StatusCreated)
-		utils.HandleError(json.NewEncoder(rw).Encode(blockchain.BlockChain().Blocks))
+		utils.HandleError(json.NewEncoder(rw).Encode(blockchain.BlockChain().Blocks()))
 	}
 }
 
