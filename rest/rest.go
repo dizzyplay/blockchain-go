@@ -8,7 +8,6 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
-	"strconv"
 )
 
 var port string
@@ -43,7 +42,7 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			Description: "",
 		},
 		{
-			URL:         url("/blocks/{height}"),
+			URL:         url("/blocks/{hash}"),
 			Method:      "GET",
 			Description: "See a block",
 		},
@@ -58,21 +57,20 @@ type addBlockBody struct {
 func blocks(rw http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case "GET":
-		utils.HandleError(json.NewEncoder(rw).Encode(blockchain.GetBlockChain().Blocks))
+		utils.HandleError(json.NewEncoder(rw).Encode(blockchain.BlockChain().Blocks()))
 	case "POST":
 		var b addBlockBody
 		utils.HandleError(json.NewDecoder(req.Body).Decode(&b))
-		blockchain.GetBlockChain().AddBlock(b.Message)
+		blockchain.BlockChain().AddBlock(b.Message)
 		rw.WriteHeader(http.StatusCreated)
-		utils.HandleError(json.NewEncoder(rw).Encode(blockchain.GetBlockChain().Blocks))
+		utils.HandleError(json.NewEncoder(rw).Encode(blockchain.BlockChain().Blocks))
 	}
 }
 
 func block(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	height, err := strconv.Atoi(vars["height"])
-	utils.HandleError(err)
-	block, err := blockchain.GetBlockChain().GetBlock(height)
+	hash := vars["hash"]
+	block, err := blockchain.FindBlock(hash)
 	encoder := json.NewEncoder(rw)
 	if err == blockchain.ErrNotFound {
 		encoder.Encode(errorResponse{fmt.Sprint(err)})
@@ -94,7 +92,7 @@ func Start(aPort int) {
 	router.Use(jsonContentTypeMiddleware)
 	router.HandleFunc("/", documentation).Methods("GET")
 	router.HandleFunc("/blocks", blocks).Methods("GET", "POST")
-	router.HandleFunc("/blocks/{height:[0-9]+}", block).Methods("GET")
+	router.HandleFunc("/blocks/{hash:[a-f0-9]+}", block).Methods("GET")
 	fmt.Printf("http://localhost%s\n", port)
 	log.Fatal(http.ListenAndServe(port, router))
 }

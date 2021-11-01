@@ -1,7 +1,6 @@
 package blockchain
 
 import (
-	"fmt"
 	"github.com/dizzyplay/blockchain-go/db"
 	"github.com/dizzyplay/blockchain-go/utils"
 	"sync"
@@ -27,6 +26,21 @@ func (b *blockchain) AddBlock(data string) {
 	b.persist()
 }
 
+func (b *blockchain) Blocks () []*Block {
+	var blocks []*Block
+	hashCursor := b.NewestHash
+	for {
+		block, _ := FindBlock(hashCursor)
+		blocks = append(blocks, block)
+		if block.PrevHash != "" {
+			hashCursor = block.PrevHash
+		}else {
+			break
+		}
+	}
+	return blocks
+}
+
 func BlockChain() *blockchain {
 	if b == nil {
 		once.Do(func() {
@@ -36,7 +50,6 @@ func BlockChain() *blockchain {
 				b.AddBlock("genesis block")
 			}else {
 				b.restore(checkpoint)
-				fmt.Printf("n hash %s height %d", b.NewestHash, b.Height)
 			}
 		})
 	}

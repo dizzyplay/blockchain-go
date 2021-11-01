@@ -57,3 +57,17 @@ func Checkpoint() []byte {
 	})
 	return data
 }
+
+func Close(){
+	DB().Close()
+}
+
+func Block(hash string) []byte {
+	var data []byte
+	DB().View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(blockBucket))
+		data = bucket.Get([]byte(hash))
+		return nil
+	})
+	return data
+}

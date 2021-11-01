@@ -1,7 +1,11 @@
 package main
 
-import "github.com/dizzyplay/blockchain-go/blockchain"
+import (
+	"github.com/dizzyplay/blockchain-go/cli"
+	"github.com/dizzyplay/blockchain-go/db"
+)
 
 func main() {
-	blockchain.BlockChain()
+	defer db.Close()
+	cli.Start()
 }

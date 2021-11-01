@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"github.com/dizzyplay/blockchain-go/explorer"
 	"github.com/dizzyplay/blockchain-go/rest"
-	"os"
+	"runtime"
 )
 
 func usage(){
 	fmt.Println("usage:")
 	fmt.Println("	-mode=rest")
 	fmt.Println("	-mode=explorer")
-	os.Exit(0)
+	runtime.Goexit()
 }
 
 func Start() {
