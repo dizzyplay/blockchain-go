@@ -10,6 +10,7 @@ const (
 	defaultDifficulty  int = 2
 	difficultyInterval int = 5
 	blockInterval      int = 2
+	allowedRange       int = 2
 )
 
 type blockchain struct {
@@ -63,23 +64,17 @@ func BlockChain() *blockchain {
 }
 
 func (b *blockchain) calculateDifficulty() int {
-	block, _ := FindBlock(b.NewestHash)
-	targetHash := block.PrevHash
-	lastTime := block.Timestamp
-	var firstTime int
-	for i := 0; i < difficultyInterval-1; i++ {
-		p, _ := FindBlock(targetHash)
-		targetHash = p.PrevHash
-		if i == difficultyInterval-2 {
-			firstTime = p.Timestamp
-		}
-	}
-	t := lastTime - firstTime
-	if t < blockInterval * difficultyInterval * 60  {
+	allBlocks := b.Blocks()
+	newestBlock := allBlocks[0]
+	lastCalculatedBlock := allBlocks[difficultyInterval-1]
+	gap := (newestBlock.Timestamp / 60) - (lastCalculatedBlock.Timestamp / 60)
+	expectedTime := blockInterval * difficultyInterval
+	if gap <= (expectedTime - allowedRange) {
 		return b.CurrentDifficulty + 1
-	} else {
+	} else if gap >= (expectedTime + allowedRange) {
 		return b.CurrentDifficulty - 1
 	}
+	return b.CurrentDifficulty
 }
 
 func (b *blockchain) Difficulty() int {
