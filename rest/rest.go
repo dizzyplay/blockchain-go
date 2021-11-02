@@ -55,20 +55,14 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(rw).Encode(data)
 }
 
-type addBlockBody struct {
-	Message string
-}
-
 func blocks(rw http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case "GET":
 		utils.HandleError(json.NewEncoder(rw).Encode(blockchain.BlockChain().Blocks()))
 	case "POST":
-		var b addBlockBody
-		utils.HandleError(json.NewDecoder(req.Body).Decode(&b))
-		blockchain.BlockChain().AddBlock(b.Message)
-		rw.WriteHeader(http.StatusCreated)
+		blockchain.BlockChain().AddBlock()
 		utils.HandleError(json.NewEncoder(rw).Encode(blockchain.BlockChain().Blocks()))
+		rw.WriteHeader(http.StatusCreated)
 	}
 }
 
