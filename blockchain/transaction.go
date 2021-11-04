@@ -111,3 +111,13 @@ func (m *mempool) TxToConfirm() []*Tx {
 	m.Txs = nil
 	return txs
 }
+
+
+func isOnMempool(uTxOut *UTxOut) bool {
+	for _, tx := range Mempool.Txs {
+		for _, input := range tx.TxIns {
+			return input.TxId == uTxOut.TxId && input.Index == uTxOut.Index
+		}
+	}
+	return false
+}
