@@ -24,12 +24,19 @@ type mempool struct {
 var Mempool *mempool = &mempool{}
 
 type TxIn struct {
-	Owner  string
-	Amount int
+	TxId  string `json:"txId"`
+	Index int    `json:"index"`
+	Owner string `json:"owner"`
 }
 
 type TxOut struct {
-	Owner  string
+	Owner  string `json:"owner"`
+	Amount int    `json:"amount"`
+}
+
+type UTxOut struct {
+	TxId   string
+	Index  int
 	Amount int
 }
 
@@ -39,7 +46,7 @@ func (tx *Tx) getId() {
 
 func makeCoinBaseTx(address string) *Tx {
 	txIns := []*TxIn{
-		{"COINBASE", mineReward},
+		{"", -1, "COINBASE"},
 	}
 	txOuts := []*TxOut{
 		{"me", mineReward},
@@ -54,45 +61,38 @@ func makeCoinBaseTx(address string) *Tx {
 	return &tx
 }
 
-func makeTx(from, to string , amount int) (*Tx, error) {
-	 if BlockChain().TotalBalanceByAddress(from) < amount {
-		 return nil, errors.New("not enough money")
-	 }
-	 var txIns []*TxIn
-	 var txOuts []*TxOut
-	 total := 0
-	 oldTxs := BlockChain().TxOutsByAddress(from)
-	 for _, otx := range oldTxs {
-		 if total > amount {
-			 break
-		 }
-		 txIn := &TxIn{otx.Owner, otx.Amount}
-		 txIns = append(txIns, txIn)
-		 total += otx.Amount
-	 }
-
-	 rest := total-amount
-
-	 if rest != 0 {
-		 txOuts = append(txOuts, &TxOut{
-			 from,
-			 rest,
-		 })
-	 }
-
+func makeTx(from, to string, amount int) (*Tx, error) {
+	if BlockChain().TotalBalanceByAddress(from) < amount {
+		return nil, errors.New("not enough funds")
+	}
+	var txOuts []*TxOut
+	var txIns []*TxIn
+	total := 0
+	uTxOuts := BlockChain().UTxOutsByAddress(from)
+	for _, uTxOut := range uTxOuts {
+		if total >= amount {
+			break
+		}
+		txIn := &TxIn{uTxOut.TxId, uTxOut.Index, from}
+		txIns = append(txIns, txIn)
+		total += uTxOut.Amount
+	}
+	if rest := total - amount; rest > 0 {
+		txOut := &TxOut{from, rest}
+		txOuts = append(txOuts, txOut)
+	}
 	txOuts = append(txOuts, &TxOut{
 		to,
 		amount,
 	})
-
-	 tx := &Tx{
-		 "",
-		 int(time.Now().Unix()),
+	tx := &Tx{
+		"",
+		int(time.Now().Unix()),
 		txIns,
 		txOuts,
-	 }
-	 tx.getId()
-	 return tx, nil
+	}
+	tx.getId()
+	return tx, nil
 }
 
 func (m *mempool) AddTx(to string, amount int) error {
