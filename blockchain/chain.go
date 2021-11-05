@@ -60,7 +60,7 @@ func BlockChain() *blockchain {
 		b = &blockchain{Height: 0}
 		checkpoint := db.Checkpoint()
 		if checkpoint == nil {
-			b.AddBlock(defaultDifficulty)
+			b.AddBlock()
 		} else {
 			b.restore(checkpoint)
 		}
@@ -116,8 +116,8 @@ func (b *blockchain) restore(data []byte) {
 	utils.FromBytes(b, data)
 }
 
-func (b *blockchain) AddBlock(diff int) {
-	block := createBlock(b.NewestHash, b.Height+1, diff)
+func (b *blockchain) AddBlock() {
+	block := createBlock(b.NewestHash, b.Height+1, Difficulty(b))
 	b.NewestHash = block.Hash
 	b.Height = block.Height
 	persistBlockChain(b)

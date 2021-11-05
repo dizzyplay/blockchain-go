@@ -85,8 +85,7 @@ func blocks(rw http.ResponseWriter, req *http.Request) {
 	case "GET":
 		utils.HandleError(json.NewEncoder(rw).Encode(blockchain.Blocks(blockchain.BlockChain())))
 	case "POST":
-		diff := blockchain.Difficulty(blockchain.BlockChain())
-		blockchain.BlockChain().AddBlock(diff)
+		blockchain.BlockChain().AddBlock()
 		utils.HandleError(json.NewEncoder(rw).Encode(blockchain.Blocks(blockchain.BlockChain())))
 		rw.WriteHeader(http.StatusCreated)
 	}

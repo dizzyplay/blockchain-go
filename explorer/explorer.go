@@ -29,8 +29,7 @@ func add(rw http.ResponseWriter, r *http.Request) {
 	case "GET":
 		templates.ExecuteTemplate(rw, "add", nil)
 	case "POST":
-		diff := blockchain.Difficulty(blockchain.BlockChain())
-		blockchain.BlockChain().AddBlock(diff)
+		blockchain.BlockChain().AddBlock()
 		http.Redirect(rw, r, "/", http.StatusMovedPermanently)
 	}
 }
