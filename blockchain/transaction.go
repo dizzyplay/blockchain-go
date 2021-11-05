@@ -62,13 +62,13 @@ func makeCoinBaseTx(address string) *Tx {
 }
 
 func makeTx(from, to string, amount int) (*Tx, error) {
-	if BlockChain().TotalBalanceByAddress(from) < amount {
+	if TotalBalanceByAddress(from, BlockChain()) < amount {
 		return nil, errors.New("not enough funds")
 	}
 	var txOuts []*TxOut
 	var txIns []*TxIn
 	total := 0
-	uTxOuts := BlockChain().UTxOutsByAddress(from)
+	uTxOuts := UTxOutsByAddress(from, BlockChain())
 	for _, uTxOut := range uTxOuts {
 		if total >= amount {
 			break

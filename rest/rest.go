@@ -83,10 +83,11 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 func blocks(rw http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case "GET":
-		utils.HandleError(json.NewEncoder(rw).Encode(blockchain.BlockChain().Blocks()))
+		utils.HandleError(json.NewEncoder(rw).Encode(blockchain.Blocks(blockchain.BlockChain())))
 	case "POST":
-		blockchain.BlockChain().AddBlock()
-		utils.HandleError(json.NewEncoder(rw).Encode(blockchain.BlockChain().Blocks()))
+		diff := blockchain.Difficulty(blockchain.BlockChain())
+		blockchain.BlockChain().AddBlock(diff)
+		utils.HandleError(json.NewEncoder(rw).Encode(blockchain.Blocks(blockchain.BlockChain())))
 		rw.WriteHeader(http.StatusCreated)
 	}
 }
@@ -119,10 +120,10 @@ func balance(rw http.ResponseWriter, r *http.Request) {
 	address := vars["address"]
 	isTotal := r.URL.Query().Get("total")
 	if isTotal == "true" {
-		total := blockchain.BlockChain().TotalBalanceByAddress(address)
+		total := blockchain.TotalBalanceByAddress(address, blockchain.BlockChain())
 		utils.HandleError(json.NewEncoder(rw).Encode(balanceResponse{address, total}))
 	} else {
-		utils.HandleError(json.NewEncoder(rw).Encode(blockchain.BlockChain().UTxOutsByAddress(address)))
+		utils.HandleError(json.NewEncoder(rw).Encode(blockchain.UTxOutsByAddress(address, blockchain.BlockChain())))
 	}
 
 }
