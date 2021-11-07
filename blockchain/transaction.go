@@ -3,6 +3,7 @@ package blockchain
 import (
 	"errors"
 	"github.com/dizzyplay/blockchain-go/utils"
+	"github.com/dizzyplay/blockchain-go/wallet"
 	"time"
 )
 
@@ -49,7 +50,7 @@ func makeCoinBaseTx(address string) *Tx {
 		{"", -1, "COINBASE"},
 	}
 	txOuts := []*TxOut{
-		{"me", mineReward},
+		{wallet.Wallet().Address, mineReward},
 	}
 	tx := Tx{
 		Id:        "",
@@ -96,7 +97,7 @@ func makeTx(from, to string, amount int) (*Tx, error) {
 }
 
 func (m *mempool) AddTx(to string, amount int) error {
-	tx, err := makeTx("me", to, amount)
+	tx, err := makeTx(wallet.Wallet().Address, to, amount)
 	if err != nil {
 		return err
 	}
@@ -104,8 +105,9 @@ func (m *mempool) AddTx(to string, amount int) error {
 	return nil
 }
 
+
 func (m *mempool) TxToConfirm() []*Tx {
-	coinbase := makeCoinBaseTx("me")
+	coinbase := makeCoinBaseTx(wallet.Wallet().Address)
 	txs := m.Txs
 	txs = append(txs, coinbase)
 	m.Txs = nil
