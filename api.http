@@ -13,7 +13,7 @@ Content-Type: application/json
 }
 
 ###
-GET http://localhost:4000/balance/me?total=true
+GET http://localhost:4000/balance/906bdf8c2eb12c46646d5ada72a383e6e96c7d19977876e775381130877955801c6a6493acec21ff6c15b5cb7e66c669e72025a477ff1b155eafbacb292ad322
 
 ###
 GET http://localhost:4000/balance/someone?total=true
@@ -29,3 +29,6 @@ Content-Type: application/json
 
 ###
 GET http://localhost:4000/mempool
+
+###
+GET http://localhost:4000/wallet
