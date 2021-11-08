@@ -84,12 +84,15 @@ func UTxOutsByAddress(address string, b *blockchain) []*UTxOut {
 	for _, block := range Blocks(b) {
 		for _, txs := range block.Transactions {
 			for _, input := range txs.TxIns {
-				if address == input.Owner {
+				if input.Signature == "COINBASE" {
+					break;
+				}
+				if address == FindTx(b, input.TxId).TxOuts[input.Index].Address {
 					SpentTxIns[input.TxId] = true
 				}
 			}
 			for idx, txout := range txs.TxOuts {
-				if txout.Owner == address {
+				if txout.Address == address {
 					if _, exist := SpentTxIns[txs.Id]; !exist {
 						utxOut := &UTxOut{txs.Id, idx, txout.Amount}
 						if !isOnMempool(utxOut) {
@@ -121,4 +124,21 @@ func (b *blockchain) AddBlock() {
 	b.NewestHash = block.Hash
 	b.Height = block.Height
 	persistBlockChain(b)
+}
+
+func allTxs(b *blockchain)[]*Tx{
+	var txs []*Tx
+	for _, block := range Blocks(b) {
+		txs = append(txs, block.Transactions... )
+	}
+	return txs
+}
+
+func FindTx(b *blockchain, txId string) *Tx {
+	for _,tx := range allTxs(b) {
+		if tx.Id == txId {
+			return tx
+		}
+	}
+	return nil
 }

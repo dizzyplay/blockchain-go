@@ -11,6 +11,9 @@ const (
 	mineReward int = 50
 )
 
+var ErrorNoMoney = errors.New("not enough funds")
+var ErrorInvalidTx = errors.New("invalid transaction")
+
 type Tx struct {
 	Id        string   `json:"id"`
 	Timestamp int      `json:"timestamp"`
@@ -25,13 +28,13 @@ type mempool struct {
 var Mempool *mempool = &mempool{}
 
 type TxIn struct {
-	TxId  string `json:"txId"`
-	Index int    `json:"index"`
-	Owner string `json:"owner"`
+	TxId      string `json:"txId"`
+	Index     int    `json:"index"`
+	Signature string `json:"signature"`
 }
 
 type TxOut struct {
-	Owner  string `json:"owner"`
+	Address  string `json:"address"`
 	Amount int    `json:"amount"`
 }
 
@@ -39,6 +42,26 @@ type UTxOut struct {
 	TxId   string
 	Index  int
 	Amount int
+}
+
+func (tx *Tx)sign(){
+	for _, txIn := range tx.TxIns {
+		txIn.Signature = wallet.Sign(tx.Id, wallet.Wallet())
+	}
+}
+
+func validate(tx *Tx) bool {
+	for _, txIn := range tx.TxIns {
+		prevTx := FindTx(BlockChain(),txIn.TxId)
+		if prevTx == nil {
+			return false
+		}
+		address := prevTx.TxOuts[txIn.Index].Address
+		if !wallet.Verify(txIn.Signature, tx.Id, address) {
+			return false
+		}
+	}
+	return true
 }
 
 func (tx *Tx) getId() {
@@ -62,9 +85,10 @@ func makeCoinBaseTx(address string) *Tx {
 	return &tx
 }
 
+
 func makeTx(from, to string, amount int) (*Tx, error) {
 	if TotalBalanceByAddress(from, BlockChain()) < amount {
-		return nil, errors.New("not enough funds")
+		return nil, ErrorNoMoney
 	}
 	var txOuts []*TxOut
 	var txIns []*TxIn
@@ -93,6 +117,10 @@ func makeTx(from, to string, amount int) (*Tx, error) {
 		txOuts,
 	}
 	tx.getId()
+	tx.sign()
+	if !validate(tx) {
+		return nil, ErrorInvalidTx
+	}
 	return tx, nil
 }
 
@@ -105,7 +133,6 @@ func (m *mempool) AddTx(to string, amount int) error {
 	return nil
 }
 
-
 func (m *mempool) TxToConfirm() []*Tx {
 	coinbase := makeCoinBaseTx(wallet.Wallet().Address)
 	txs := m.Txs
@@ -113,7 +140,6 @@ func (m *mempool) TxToConfirm() []*Tx {
 	m.Txs = nil
 	return txs
 }
-
 
 func isOnMempool(uTxOut *UTxOut) bool {
 	for _, tx := range Mempool.Txs {

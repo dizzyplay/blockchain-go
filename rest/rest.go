@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/dizzyplay/blockchain-go/blockchain"
 	"github.com/dizzyplay/blockchain-go/utils"
+	"github.com/dizzyplay/blockchain-go/wallet"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
@@ -141,6 +142,20 @@ func transaction(rw http.ResponseWriter, r *http.Request) {
 	rw.WriteHeader(http.StatusCreated)
 }
 
+//type myWalletResponse struct {
+//	Address string `json:"address"`
+//}
+
+func myWallet(rw http.ResponseWriter, r *http.Request) {
+	address := wallet.Wallet().Address
+	//json.NewEncoder(rw).Encode(myWalletResponse{
+	//	Address: address,
+	//})
+	json.NewEncoder(rw).Encode(struct {Address string `json:"address"`}{
+		Address: address,
+	})
+}
+
 func Start(aPort int) {
 	router := mux.NewRouter()
 	port = fmt.Sprintf(":%d", aPort)
@@ -151,6 +166,7 @@ func Start(aPort int) {
 	router.HandleFunc("/blocks/{hash:[a-f0-9]+}", block).Methods("GET")
 	router.HandleFunc("/balance/{address}", balance).Methods("GET")
 	router.HandleFunc("/mempool", mempool)
+	router.HandleFunc("/wallet", myWallet)
 	router.HandleFunc("/transactions", transaction).Methods("POST")
 
 	fmt.Printf("http://localhost%s\n", port)
