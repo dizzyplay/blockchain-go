@@ -85,10 +85,12 @@ func blocks(rw http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case "GET":
 		utils.HandleError(json.NewEncoder(rw).Encode(blockchain.Blocks(blockchain.BlockChain())))
+		return
 	case "POST":
 		blockchain.BlockChain().AddBlock()
-		utils.HandleError(json.NewEncoder(rw).Encode(blockchain.Blocks(blockchain.BlockChain())))
 		rw.WriteHeader(http.StatusCreated)
+		utils.HandleError(json.NewEncoder(rw).Encode(blockchain.Blocks(blockchain.BlockChain())))
+		return
 	}
 }
 
@@ -137,7 +139,9 @@ func transaction(rw http.ResponseWriter, r *http.Request) {
 	utils.HandleError(json.NewDecoder(r.Body).Decode(&payload))
 	err := blockchain.Mempool.AddTx(payload.To, payload.Amount)
 	if err != nil {
-		json.NewEncoder(rw).Encode(errorResponse{"not enough funds"})
+		rw.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(rw).Encode(errorResponse{err.Error()})
+		return
 	}
 	rw.WriteHeader(http.StatusCreated)
 }

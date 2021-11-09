@@ -13,7 +13,7 @@ Content-Type: application/json
 }
 
 ###
-GET http://localhost:4000/balance/906bdf8c2eb12c46646d5ada72a383e6e96c7d19977876e775381130877955801c6a6493acec21ff6c15b5cb7e66c669e72025a477ff1b155eafbacb292ad322
+GET http://localhost:4000/balance/7f7e3e4954542ebf5fd1436054c3e3a790d20398a4902a630e25819f49c7b0049cb4d10e26730f84286b90fd24f699e07dcf5ca50f941351f9ea555801a58e35
 
 ###
 GET http://localhost:4000/balance/someone?total=true
@@ -24,7 +24,7 @@ Content-Type: application/json
 
 {
   "to": "someone",
-  "amount": 50
+  "amount":40
 }
 
 ###
