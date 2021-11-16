@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/dizzyplay/blockchain-go/blockchain"
+	"github.com/dizzyplay/blockchain-go/p2p"
 	"github.com/dizzyplay/blockchain-go/utils"
 	"github.com/dizzyplay/blockchain-go/wallet"
 	"github.com/gorilla/mux"
@@ -77,6 +78,11 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			Method:      "POST",
 			Description: "make tx",
 		},
+		{
+			URL:         url("/ws"),
+			Method:      "GET",
+			Description: "Upgrade to Web socket",
+		},
 	}
 	json.NewEncoder(rw).Encode(data)
 }
@@ -117,6 +123,12 @@ func jsonContentTypeMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func loggerMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		fmt.Println(req.URL)
+		next.ServeHTTP(w, req)
+	})
+}
 func balance(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	address := vars["address"]
@@ -163,7 +175,7 @@ func myWallet(rw http.ResponseWriter, r *http.Request) {
 func Start(aPort int) {
 	router := mux.NewRouter()
 	port = fmt.Sprintf(":%d", aPort)
-	router.Use(jsonContentTypeMiddleware)
+	router.Use(jsonContentTypeMiddleware, loggerMiddleware)
 	router.HandleFunc("/", documentation).Methods("GET")
 	router.HandleFunc("/status", status).Methods("GET")
 	router.HandleFunc("/blocks", blocks).Methods("GET", "POST")
@@ -172,6 +184,7 @@ func Start(aPort int) {
 	router.HandleFunc("/mempool", mempool)
 	router.HandleFunc("/wallet", myWallet)
 	router.HandleFunc("/transactions", transaction).Methods("POST")
+	router.HandleFunc("/ws", p2p.Upgrade)
 
 	fmt.Printf("http://localhost%s\n", port)
 	log.Fatal(http.ListenAndServe(port, router))

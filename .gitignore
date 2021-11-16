@@ -1,3 +1,4 @@
 .idea/
 *.db
 *.wallet
+.DS_Store
